@@ -26,6 +26,7 @@ def largest_prime_factor(n):
     return n
 
 
+# print(largest_prime_factor(600851475143))
 t = int(input().strip())
 for _ in range(t):
     n = int(input().strip())

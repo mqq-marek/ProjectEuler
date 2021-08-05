@@ -23,6 +23,7 @@ def eratosthenes_sieve(arr):
 
 if __name__ == "__main__":
     eratosthenes_sieve(sieve)
+    # print(primes[10001])
     t = int(input().strip())
     for _ in range(t):
         n = int(input().strip())

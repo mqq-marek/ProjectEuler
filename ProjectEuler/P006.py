@@ -13,12 +13,14 @@ Find the difference between the sum of the squares of the first N natural number
 """
 
 
+def sum_square_vs_square_sum_diff(n):
+    s1 = n * (n + 1) * (2 * n + 1) // 6
+    s2 = (n * (n + 1) // 2) ** 2
+    return abs(s1 - s2)
+
+
+# print(sum_square_vs_square_sum_diff(100))
 t = int(input().strip())
 for _ in range(t):
     n = int(input().strip())
-
-    s1 = n * (n + 1) * (2 * n + 1) // 6
-
-    s2 = (n * (n + 1) //2) ** 2
-
-    print(abs(s1-s2))
+    print(sum_square_vs_square_sum_diff(n))

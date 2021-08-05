@@ -1,5 +1,8 @@
 #!/bin/python3
-
+"""
+The four adjacent digits in the 1000-digit number that have the greatest product are 9 × 9 × 8 × 9 = 5832.
+Find the n adjacent digits in the given number that have the greatest product.
+"""
 import sys
 from functools import reduce
 
@@ -85,4 +88,4 @@ def dev_main():
 
 
 if __name__ == "__main__":
-    dev_main()
+    hacker_main()

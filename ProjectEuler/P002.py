@@ -20,6 +20,7 @@ def fibonacci():
         yield j
 
 
+# print(sum([i for i in takewhile(lambda x: x < 4000000, fibonacci()) if i % 2 == 0]))
 t = int(input().strip())
 for _ in range(t):
     n = int(input().strip())

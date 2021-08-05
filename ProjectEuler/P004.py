@@ -30,6 +30,7 @@ def find_palindrome(n):
             return p
 
 
+# print(find_palindrome(999999))
 t = int(input().strip())
 for _ in range(t):
     n = int(input().strip())

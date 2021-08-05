@@ -23,6 +23,7 @@ def multiples_of_3_5(stop):
 
 
 if __name__ == "__main__":
+    # print(multiples_of_3_5(1000))
     t = int(input().strip())
     for _ in range(t):
         n = int(input().strip())

@@ -1,8 +1,13 @@
 #!/bin/python3
+"""
+The sum of the primes below 10 is 2 + 3 + 5 + 7 = 17.
+
+Find the sum of all the primes below given number n.
+"""
 
 from bisect import bisect_right
 
-SIEVE_SIZE = 10 ** 6 + 2
+SIEVE_SIZE = 2 * 10 ** 6 + 2
 sieve = [0] * SIEVE_SIZE
 primes = []
 
@@ -36,9 +41,8 @@ def hacker_main():
 
 def dev_main():
     eratosthenes_sieve(sieve)
-    for i in range(20):
-        print(i, binary_search(i))
+    print(binary_search(2000000))
 
 
 if __name__ == "__main__":
-    dev_main()
+    hacker_main()
