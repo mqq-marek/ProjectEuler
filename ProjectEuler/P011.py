@@ -33,7 +33,7 @@ GRID_TEXT = """
 
 def grid_operation_in_dir(arr, k, x_dir, y_dir, operation=operator.mul, initial_value=1):
     """
-    Find max product in given direction
+    Find max product in given direction.
     :param arr: square matrix with numbers
     :param k: product length
     :param x_dir: -1, 0, 1
@@ -55,7 +55,7 @@ def grid_operation_in_dir(arr, k, x_dir, y_dir, operation=operator.mul, initial_
 
 
 def max_grid_product(arr, k):
-    """ Compute max grid product in four directions: right, down, diagonal right and diagonal left"""
+    """ Compute max grid product in four directions: right, down, diagonal right and diagonal left."""
     max_product = max(grid_operation_in_dir(arr, k, x, y) for x, y in [(0, 1), (1, 0), (1, 1), (-1, 1)])
     return max_product
 

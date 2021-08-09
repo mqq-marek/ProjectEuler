@@ -9,9 +9,10 @@ import math
 
 # Definition for triangle
 sqrt2 = math.sqrt(2)
-# a**2 + b**2 = c**2, a <= b < c
+# a**2 + b**2 = c**2, a < b < c
 s1 = 1 / (2 + sqrt2)        # 1 <= a <= s1 * (a + b + c) = n,  s1 * n < b < n //2
 s2 = sqrt2 / (2 + sqrt2)    # s2 * n < c <= n//2
+
 
 def triangle(n):
     product = -1
@@ -26,8 +27,7 @@ def triangle(n):
                     return product
     return product
 
-# Definitions for triangle2
-# Triangle is based on two parameters.
+
 # For Pythagorean triangle a, b, c can be decomposed as k*(x**2-y**2), 2*k*x*y and k*(x**2+y**2).
 # We still have that c < n // 2 this gives us that x ** 2 < n // 2 and y**2 < n // 4 (as x > y)
 
@@ -44,7 +44,7 @@ def triangle2(n):
             if n % a_b_c:
                 continue
             k = n // a_b_c
-            p = 2 * x * y * (x2 + y2) * (x2 - y2) * k * k * k
+            p = k ** 3 * 2 * x * y * (x2 + y2) * (x2 - y2)
             if p > product:
                 product = p
     return product
