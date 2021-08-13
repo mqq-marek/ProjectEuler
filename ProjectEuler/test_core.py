@@ -1,6 +1,6 @@
 import pytest
 from itertools import islice
-from core import fibonacci, divisors, sequence_condition, prime_divisors, least_common_multiple
+from core import fibonacci, divisors, sequence_condition, prime_divisors, least_common_multiple, is_prime
 
 
 def test_fibonacci():
@@ -92,3 +92,26 @@ lcm_table = [
 @pytest.mark.parametrize("nums, expected", lcm_table)
 def test_least_common_multiple(nums, expected):
     assert least_common_multiple(nums) == expected
+
+
+prime_table = [
+    (1, False),
+    (2, True),
+    (3, True),
+    (4, False),
+    (5, True),
+    (6, False),
+    (7, True),
+    (8, False),
+    (9, False),
+    (10, False),
+    (11, True),
+    (12, False),
+    (13, True),
+    (14, False),
+]
+
+
+@pytest.mark.parametrize("num, expected", prime_table)
+def test_is_prime(num, expected):
+    assert is_prime(num) == expected
