@@ -21,6 +21,18 @@ m = 3
 
 There are 9 valid permutations in all.
 
+
+Function Description
+
+Complete the legoBlocks function in the editor below.
+
+legoBlocks has the following parameter(s):
+
+int n: the height of the wall
+int m: the width of the wall
+Returns
+- int: the number of valid wall formations modulo 10**9 + 7
+
 """
 import itertools
 import operator
