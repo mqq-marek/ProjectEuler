@@ -1,6 +1,14 @@
 import pytest
 from itertools import islice
-from core import fibonacci, divisors, sequence_condition, prime_divisors, least_common_multiple, is_prime
+from core import (
+    fibonacci,
+    divisors,
+    sequence_condition,
+    prime_divisors,
+    least_common_multiple,
+    is_prime,
+    partitions,
+)
 
 
 def test_fibonacci():
@@ -115,3 +123,15 @@ prime_table = [
 @pytest.mark.parametrize("num, expected", prime_table)
 def test_is_prime(num, expected):
     assert is_prime(num) == expected
+
+
+partition_table = [
+    (1, [[1]]),
+    (2, [[2], [1, 1]]),
+    (3, [[3], [1, 2], [1, 1, 1]])
+]
+
+
+@pytest.mark.parametrize("num, expected", partition_table)
+def test_partition(num, expected):
+    assert list(partitions(num)) == expected

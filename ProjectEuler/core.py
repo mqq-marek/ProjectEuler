@@ -53,7 +53,7 @@ def fibonacci() -> Iterator[int]:
         f_current, f_next = f_next, f_current + f_next
 
 
-def divisors(num: int, /, start: int = 2, ordered: bool = False, step: int = 1) -> Iterator[int]:
+def divisors(num: int, *, start: int = 2, ordered: bool = False, step: int = 1) -> Iterator[int]:
     """
     Get all number divisors starting from start.
     Faster (sqrt(n) operations) than scanning all numbers using:
@@ -180,14 +180,78 @@ def is_prime(num: int) -> bool:
     :return: True if prime, False otherwise
     """
     assert num >= 1
+
     if num == 1:
         return False
+
     try:
         # try to get first divisor
         divisor = next(divisors(num, start=2, step=2))
     except StopIteration:
         # if no divisors, means num is prime
         return True
-    return False
+    else:
+        return False
 
 
+def partitions(n):
+    """
+    Yields number n partitions.
+    partitions(5) yields:
+        [5]
+        [1, 4]
+        [2, 3]
+        [1, 1, 3]
+        [1, 2, 2]
+        [1, 1, 1, 2]
+        [1, 1, 1, 1, 1]
+    """
+
+    def next_partition():
+        """
+        Update partition to the next one with the same length.
+        :return: True if next partition exist otherwise False
+        """
+        right_side_sum = 0
+        for i in reversed(range(len(partition) - 1)):
+            # Keep sum of elements skipped from right
+            right_side_sum += partition[i + 1]
+            # From the end look for the first element smaller than next
+            if partition[i + 1] > partition[i]:
+                # Borrow one
+                partition[i+1] -= 1
+                # Find next which is smaller for increasing them
+                for j in reversed(range(i+1)):
+                    if partition[j + 1] > partition[j]:
+                        # Increase element j. Keep invariants that sum is n and numbers are monotonic
+                        partition[j] += 1
+                        # Now prepare for making minimal part on right of j
+                        # all elements on right are equals partition[j] except last one which can be grater
+                        right_j_sum = right_side_sum + (i - j) * partition[j+1]
+                        distance = len(partition) - j - 2
+                        for k in range(distance):
+                            partition[j + k + 1] = partition[j]
+                        partition[-1] = right_j_sum - distance * partition[j] - 1
+                        return True
+        # Not found any place for generating next partition with:
+        #   - the same sum
+        #   - the same length
+        #   - having elements in order: partition[0] <= partition[1] .... <= partition[len(partition)-1]
+        return False
+
+    # Build partitions in order based on partition length starting from 1 to n.
+    # Elements in partition are always in non decreasing order
+    # length == 1: [n]
+    # length == 2: [1, n-1], [2, n-2], '''
+    # length == 3: [1, 1, n-2], ...
+    # ....
+    # length == n: [1] * n
+    for m in range(n):
+        partition = [1] * m
+        partition.append(n - m)
+        yield partition[:]
+        # Next partitions with the same size
+        while next_partition():
+            # assert all(a <= b for a, b in zip(partition, partition[1:])), partition
+            # assert sum(partition) == n, partition
+            yield partition[:]
