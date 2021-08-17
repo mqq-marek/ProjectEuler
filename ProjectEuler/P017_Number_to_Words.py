@@ -62,6 +62,14 @@ def number_to_words(n, and_support=False):
     return result
 
 
+def euler_main():
+    total = 0
+    for i in range(1, 1001):
+        s = number_to_words(i,and_support=True)
+        total += sum(1 for ch in s if ch.isalpha())
+    return total
+
+
 def hacker_main():
     t = int(input())
     for _ in range(t):
@@ -70,6 +78,8 @@ def hacker_main():
         print(result)
 
 
+print(number_to_words(101,and_support=True))
+print(euler_main())
 #print(number_to_words(104300513783))
 # print(digits_sum(1000))
 hacker_main()

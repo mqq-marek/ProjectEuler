@@ -34,25 +34,33 @@ Returns
 - int: the number of valid wall formations modulo 10**9 + 7
 
 """
+import os
 import itertools
 import operator
 from functools import reduce
+import math
 
-from core import partitions
+from collections import Counter, defaultdict
 
 MODULO = 10**9+7
-
-rows_counter = {1: 1, 2: 2, 3: 4, 4: 8, 5: 15, 6: 29}
+MAX_N_M_SIZE = 1001
+cache_row_permutations = [0, 1, 2, 4, 8, 15, 29] + [0] * MAX_N_M_SIZE
 towers_counter = {}
 
 
-def rows_permutation(m):
-    if rows_counter.get(m) is None:
-        rows_counter[m] = (2 * rows_permutation(m-1) - rows_permutation(m-5)) % MODULO
-    return rows_counter[m]
+
+
+def get_row_permutations(m):
+    if not cache_row_permutations[m]:
+        cache_row_permutations[m] = (2 * get_row_permutations(m - 1) - get_row_permutations(m - 5))
+    return cache_row_permutations[m]
 
 
 def tower_permutation(n, m):
+    cache_all_permutations = [0] * (m + 1)
+    cache_tower_permutations = [0] * (m + 1)
+    for index in range(1, m + 1):
+        cache_all_permutations[index] = pow(get_row_permutations(index), n, MODULO)
     if n == 1:
         if m <= 4:
             return 1
@@ -61,19 +69,16 @@ def tower_permutation(n, m):
         return 1
     if m == 2:
         return pow(2, n, MODULO) - 1
-    if towers_counter.get((n, m)) is None:
-        one_row_counter = rows_permutation(m)
-        all_towers = pow(one_row_counter, n, MODULO)
-        cut_partitions = partitions(m)
-        next(cut_partitions)
-        for p in cut_partitions:
-            partition_product = 1
-            for e in p:
-                partition_product *= tower_permutation(n, e)
-            partition_product *= len(set(itertools.permutations(p)))
-            all_towers -= partition_product
-        towers_counter[(n, m)] = all_towers % MODULO
-    return towers_counter[(n, m)]
+    cache_tower_permutations[1] = 1
+    cache_tower_permutations[2] = (pow(2, n, MODULO) - 1) % MODULO
+    for index in range(3, m+1):
+        valid_towers = cache_all_permutations[index]
+        for split_index in range(1, index):
+            left_all = cache_all_permutations[index - split_index]
+            right_tower = cache_tower_permutations[split_index]
+            valid_towers = (valid_towers - left_all * right_tower) % MODULO
+        cache_tower_permutations[index] = valid_towers
+    return cache_tower_permutations[m]
 
 
 def row_patterns(m):
@@ -155,7 +160,8 @@ def count_towers(n, m):
 
 
 def legoBlocks(n, m):
-    return tower_permutation(n, m)
+    result = tower_permutation(n, m)
+    return result
 
 
 def check_towers():
@@ -191,10 +197,12 @@ def check_file():
 
 
 if __name__ == "__main__":
-    # check_towers()
-    # check_file()
+    check_towers()
+    check_file()
+
     for m in range(1, 21):
-        m1 = rows_permutation(m)
+        m1 = get_row_permutations(m)
         m2 = legoBlocks(2, m)
         m3 = legoBlocks(3, m)
-        print(f'{m}\t{m1}\t{m2}\t{m3}')
+        m4 = legoBlocks(4, m)
+        print(f'{m}\t{m1}\t{m2}\t{m3}\t{m4}')
