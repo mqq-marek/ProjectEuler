@@ -19,6 +19,7 @@ from collections import defaultdict
 normal_leap_days_per_month = {0: [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
                               1: [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
                               }
+
 normal_leap_monthly_sundays = {0: {}, 1: {}}
 
 NORMAL_WEEK_STEP = 365 % 7
