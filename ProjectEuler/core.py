@@ -1,6 +1,7 @@
 """
 Gems or core functionalities used in different problems.
 """
+import itertools
 import operator
 from functools import reduce
 from itertools import starmap
@@ -255,3 +256,21 @@ def partitions(n):
             # assert all(a <= b for a, b in zip(partition, partition[1:])), partition
             # assert sum(partition) == n, partition
             yield partition[:]
+
+
+def eratosthenes_sieve():
+    # http://mypy-lang.org/examples.html example
+    # An iterator of all numbers between 2 and
+    # +infinity
+    numbers = itertools.count(2)
+
+    # Generate primes forever
+    while True:
+        # Get the first number from the iterator
+        # (always a prime)
+        prime = next(numbers)
+        yield prime
+
+        # This code iteratively builds up a chain
+        # of filters...
+        numbers = filter(prime.__rmod__, numbers)
