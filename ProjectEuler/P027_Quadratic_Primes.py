@@ -1,19 +1,23 @@
 """
+Euler discovered the remarkable quadratic formula:
+    n*n + n + 41
 
-A unit fraction contains 1 in the numerator. The decimal representation of the unit fractions
-with denominators 2 to 10 are given: 1/2 = 0.5, ...
+It turns out that the formula will produce 40 primes for the consecutive integer values 0 <= n <= 39.
+However, when n = 40, 40*40 + 40 + 41 is divisible by 41, and certainly when n=41, 41*41 + 41 + 41
+is clearly divisible by 41.
 
-Where 0.1(6) means 0.1666... and has 1-digit recurring cycle. 1/7 has 6 digit recurring cycle.
+The incredible formula  n*n - 79 * n + 1601 was discovered, which produces 80 primes for
+the consecutive values 0<= n <= 79. The product of the coefficients, −79 and 1601, is −126479.
 
-Find the value of smallest d<N for which 1/d contains the longest recurring cycle in its decimal fraction part.
+Considering quadratics of the form: n*n + a*m + b, where  |a| <= N and |b| <= N
+
+Find the coefficients, a and b, for the quadratic expression that produces
+the maximum number of primes for consecutive values of n, starting with n = 0.
 
 """
-import math
-import operator
-from bisect import bisect_left
-from functools import reduce
-from typing import Iterator, Iterable
 
+import math
+from typing import Iterator, Iterable
 
 def divisors(num: int, *, start: int = 2, ordered: bool = False, step: int = 1) -> Iterator[int]:
     """
@@ -100,83 +104,66 @@ def divisors(num: int, *, start: int = 2, ordered: bool = False, step: int = 1) 
         yield from _divisors()
 
 
-def prime_divisors(num: int) -> Iterator[int]:
+def is_prime(num: int) -> bool:
     """
-    Get all num prime divisors.
-    :param num: number for which we yields prime divisors
-    :yields: num prime divisors
+    Verify if num is prime
+    :param num:
+    :return: True if prime, False otherwise
     """
     assert num >= 1
 
     if num == 1:
-        yield num
-    # start scan with the lowest prime
-    scan_start: int = 2
-    while num > 1:
-        try:
-            # try to get first prospect prime
-            scan_start = next(divisors(num, start=scan_start))
-        except StopIteration:
-            # if no divisors, means num is prime
-            scan_start = num
-        yield scan_start
-        num //= scan_start
+        return False
 
-# element [0] - longest cycle until now
-# element [1:] - number where max cycle length increases
-first_cycle_number = [1, 3]
+    try:
+        # try to get first divisor
+        _ = next(divisors(num, start=3, step=2))
+    except StopIteration:
+        # if no divisors, means num is prime
+        return True
+    else:
+        return False
 
 
-def ten_power(n):
-    """ Find smallest 10**power > n. """
-    nn = n
-    power = 10
-    while power < n:
-        power *= 10
-    return power
+primes = [2, 3, 5, 7, 11, 13]
 
 
-def find_cycle_len(divisor):
-    """ Find cycle length for dividends prime against numbers without 2 and 5 divisors. """
-    dividend = ten_power(divisor)
-    results = set()
-    while dividend not in results:
-        results.add(dividend)
-        quotient, reminder = divmod(dividend, divisor)
-        dividend = 10 * reminder
-    return len(results)
-
-
-def recurring_cycle(n):
-    """ Compute recurring cycle. """
-    primes_except_2_5 = [d for d in prime_divisors(n) if d != 2 and d != 5]
-    if primes_except_2_5:
-        divisor = reduce(operator.mul, primes_except_2_5, 1)
-        cycle_len = find_cycle_len(divisor)
-        return cycle_len
-    return 0
+def quadtratic_coefficients(n):
+    """ Brute force cooeficiendt finder. """
+    best_a = 0
+    best_b = 3
+    best_len = 1
+    for b in primes:
+        # b must be prime as solution starts from n = 0, so b must be prime
+        if b > n:
+            break
+        for a in range(- (b - 1), n+1):
+            # for n = 1 result must be 2 or more, so a can not be smaller than -(b -1)
+            ndx = 1
+            while True:
+                candidate = ndx*ndx + a * ndx + b
+                # next candidate must be positive and prime
+                if candidate >= 2 and is_prime(candidate):
+                    ndx += 1
+                else:
+                    break
+            if ndx > best_len:
+                best_a = a
+                best_b = b
+                best_len = ndx - 1
+    return best_a, best_b
 
 
 def init():
-    """ Initialize table giving first number with the longest cycle below n. """
-    for i in range(5, 10001, 2):
-        cl = recurring_cycle(i)
-        if cl > first_cycle_number[0]:
-            first_cycle_number[0] = cl
-            first_cycle_number.append(i)
-    first_cycle_number.append(10001)
-    first_cycle_number[0] = 1
-
-
-def longest_recurring_cycle(n):
-    """ Find smallest number with longest recurring cycle from table. """
-    ndx = bisect_left(first_cycle_number, n)
-    return first_cycle_number[ndx-1]
+    """Initialize primes table with values up to 2000. """
+    for i in range(15, 2001, 2):
+        if is_prime(i):
+            primes.append(i)
 
 
 init()
-# print(longest_recurring_cycle(1000))
-t = int(input())
-for _ in range(t):
-    n = int(input())
-    print(longest_recurring_cycle(n))
+# print(quadtratic_coefficients(1000))
+N = int(input())
+a, b = quadtratic_coefficients(N)
+print(a, b)
+

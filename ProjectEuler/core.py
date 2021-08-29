@@ -187,7 +187,7 @@ def is_prime(num: int) -> bool:
 
     try:
         # try to get first divisor
-        divisor = next(divisors(num, start=2, step=2))
+        divisor = next(divisors(num, start=3, step=2))
     except StopIteration:
         # if no divisors, means num is prime
         return True
