@@ -7,7 +7,7 @@ from core import (
     prime_divisors,
     least_common_multiple,
     is_prime,
-    partitions,
+    partitions, normalized_prime_factors_with_powers,
 )
 
 
@@ -135,3 +135,26 @@ partition_table = [
 @pytest.mark.parametrize("num, expected", partition_table)
 def test_partition(num, expected):
     assert list(partitions(num)) == expected
+
+"""
+    normalized_prime_divisors_with_powers(6) = [1, [(2,1), (3, 1)]
+    normalized_prime_divisors_with_powers(12) = [1, [(2,2), (3, 1)]
+    normalized_prime_divisors_with_powers(18) = [1, [(2,1), (3, 2)]
+    normalized_prime_divisors_with_powers(36) = [2, [(2,1), (3, 1)]
+    normalized_prime_divisors_with_powers(64) = [6, [(2,1)]
+"""
+normalized_prime_table = [
+    (1, [1, [(1, 1)]]),
+    (2, [1, [(2, 1)]]),
+    (3, [1, [(3, 1)]]),
+    (4, [2, [(2, 1)]]),
+    (6, [1, [(2, 1), (3, 1)]]),
+    (12, [1, [(2, 2), (3, 1)]]),
+    (18, [1, [(2, 1), (3, 2)]]),
+    (36, [2, [(2, 1), (3, 1)]]),
+]
+
+@pytest.mark.parametrize("num, expected", normalized_prime_table)
+def test_normalized_prime_divisors_with_powers(num, expected):
+    assert normalized_prime_factors_with_powers(num) == tuple(expected)
+
