@@ -15,10 +15,12 @@ import math
 
 
 def pentagonal(i):
+    """Pentagonal number."""
     return i * (3 * i - 1) // 2
 
 
 def rev_pentagonal(n):
+    """Reverse pentagonal. Return 0 for n < 0 or negate result is if is not positive integer result."""
     if n < 0:
         return 0
     delta = int(math.sqrt(1 + 24 * n))
