@@ -41,6 +41,7 @@ def find (n, k):
 
 eratosthenes_sieve(2 * 10**6 + 1)
 
+# find(1000000, 4)
 n, k = map(int, input().split())
 find(n, k)
 
