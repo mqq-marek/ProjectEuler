@@ -18,9 +18,10 @@ It can be observed that all hexagonal numbers are triangular numbers so we'll ha
 """
 import itertools
 import math
+from typing import Iterator
 
 
-def pentagonals():
+def pentagonals() -> Iterator[int]:
     """Yields pentagonals staring from 5."""
     p = 1
     for n in itertools.count(1):
@@ -28,7 +29,7 @@ def pentagonals():
         yield p
 
 
-def triangles():
+def triangles() -> Iterator[int]:
     """Yields triangles staring from 3."""
     t = 1
     for n in itertools.count(2):
@@ -36,7 +37,7 @@ def triangles():
         yield t
 
 
-def hexagonals():
+def hexagonals() -> Iterator[int]:
     """Yields hexagonals staring from 6."""
     h = 1
     for n in itertools.count(1):
@@ -47,7 +48,7 @@ def hexagonals():
 number_iterators = {3: triangles, 5: pentagonals, 6: hexagonals}
 
 
-def search(it1, it2, n):
+def search(it1: Iterator[int], it2: Iterator[int], n:int) -> list[int]:
     """Find all equal pairs until n."""
     output = [1]
     n1 = next(it1)

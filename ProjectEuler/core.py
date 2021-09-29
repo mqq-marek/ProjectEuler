@@ -340,7 +340,7 @@ def count_divisible_in_range(divisors: Iterable[int], stop: int):
 
 
 def gen_primes(n: int) -> list[int]:
-    def has_prime_divisiors(k):
+    def has_prime_divisors(k: int) -> bool:
         for p in primes:
             if k % p == 0:
                 return True
@@ -349,10 +349,7 @@ def gen_primes(n: int) -> list[int]:
     primes = []
     if n >= 2:
         primes.append(2)
-    for i in range(3, n+1, 2):
-        if not has_prime_divisiors(i):
+    for i in range(3, n + 1, 2):
+        if not has_prime_divisors(i):
             primes.append(i)
     return primes
-
-
-    fo
