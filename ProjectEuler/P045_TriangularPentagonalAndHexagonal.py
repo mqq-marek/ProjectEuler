@@ -16,47 +16,58 @@ It can be observed that all hexagonal numbers are triangular numbers so we'll ha
   , find all numbers below N which are Pentagonal number as well as Hexagonal
 
 """
+import itertools
 import math
 
 
-def revese_pentagonal(n):
-    """
-    Reverse pentagonal[1/6*(sqrt(24n+1)+1)].
-    Return 0 for n < 0 or negate result is if is not positive integer result.
-    """
-    if n < 0:
-        return 0
-    delta = int(math.sqrt(1 + 24 * n))
-    if delta * delta == 1 + 24 * n and delta % 6 == 5:
-        return (delta + 1) // 6
-    else:
-        return - (delta + 1) // 6
+def pentagonals():
+    """Yields pentagonals staring from 5."""
+    p = 1
+    for n in itertools.count(1):
+        p += 3 * n + 1
+        yield p
 
 
-def revese_triangle(n):
-    """
-    Reverse triangle [1/2*(sqrt(8n+1)-1)].
-    Return 0 for n < 0 or negate result is if is not positive integer result.
-    """
-    if n < 0:
-        return 0
-    delta = int(math.sqrt(1 + 8 * n))
-    if delta * delta == 1 + 8 * n and delta % 2 == 1:
-        return (delta - 1) // 2
-    else:
-        return - (delta - 1) // 2
+def triangles():
+    """Yields triangles staring from 3."""
+    t = 1
+    for n in itertools.count(2):
+        t += n
+        yield t
 
 
-def revese_hexagonal(n):
-    """
-    Reverse hexagonal [1/4*(sqrt(8n+1)+1)].
-    Return 0 for n < 0 or negate result is if is not positive integer result.
-    """
-    if n < 0:
-        return 0
-    delta = int(math.sqrt(1 + 8 * n))
-    if delta * delta == 1 + 8 * n and delta % 4 == 3:
-        return (delta + 1) // 4
-    else:
-        return - (delta + 1) // 4
+def hexagonals():
+    """Yields hexagonals staring from 6."""
+    h = 1
+    for n in itertools.count(1):
+        h += 4 * n + 1
+        yield h
+
+# Iterators map
+number_iterators = {3: triangles, 5: pentagonals, 6: hexagonals}
+
+
+def search(it1, it2, n):
+    """Find all equal pairs until n."""
+    output = [1]
+    n1 = next(it1)
+    n2 = next(it2)
+    while n1 < n and n2 < n:
+        if n1 < n2:
+            n1 = next(it1)
+        if n2 < n1:
+            n2 = next(it2)
+        if n1 == n2:
+            output.append(n1)
+            n2 = next(it2)
+    return output
+
+
+# print(search(number_iterators[5](), number_iterators[6](), 10000000000))
+n, a, b = map(int, input().split())
+output = search(number_iterators[a](), number_iterators[b](), n)
+for num in output:
+    print(num)
+
+
 
