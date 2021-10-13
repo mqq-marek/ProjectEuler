@@ -19,7 +19,7 @@ def binary_search(n):
 
 
 def eratosthenes_sieve(arr):
-    """ Build eratosthenes sive and tuples of prime and primes cumulative sum. """
+    """ Build eratosthenes sieve and tuples of prime and primes cumulative sum. """
     primes.append((0, 0))
     prime = (2, 2)
     primes.append(prime)
