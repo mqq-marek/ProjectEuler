@@ -21,6 +21,7 @@ def count(n, k):
             return n + 1 - 2 * index
     return 0
 
+
 def sum_c_n_r(n, k):
     """Count total for n in range N..1."""
     total = 0
