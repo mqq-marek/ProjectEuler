@@ -57,10 +57,10 @@ def main_hacker_rank(n, k):
         if s2 > 0:
             pentagonal_list.append(pentagonal(i + k))
 
-    return sorted(list(set((pentagonal_list))))
+    return sorted(list(set(pentagonal_list)))
 
 
-#main_euler()
+# main_euler()
 n, k = map(int, input().split())
 
 for num in main_hacker_rank(n, k):
