@@ -26,10 +26,9 @@ def sum_c_n_r(n, k):
     total = 0
     for i in range(n, 0, -1):
         cnt = count(i, k)
+        total += cnt
         if cnt == 0:
             break
-        else:
-            total += cnt
     return total
 
 
