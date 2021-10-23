@@ -1,70 +1,212 @@
 import itertools
 import math
 import operator
-from collections import Counter
-from functools import reduce
+from collections import Counter, defaultdict
+from time import perf_counter
 
-DEBUG = False
+DEBUG = True
+MODULO = 10 ** 9
 
 
-def partitions(n):
+def get_solution_by_iteration(n, k):
+    for i, result in enumerate(scan_by_iteration(k), start=1):
+        if i == n:
+            return (result[0] - 1) % MODULO
+
+
+def scan_by_iteration(k):
     """
-    Yields number n partitions.
-    partitions(5) yields:
-        [5]
-        [1, 4]
-        [2, 3]
-        [1, 1, 3]
-        [1, 2, 2]
-        [1, 1, 1, 2]
-        [1, 1, 1, 1, 1]
+    Yield solution using brute force method.
+    For n we have 2**n all subsets divided into k bins [sum modulo k]
+    Solution is bins[0] - 1 as empty set is not in scope.
+    With step n+1 we increase amount of solution by 2**n having together 2**(n+1).
+    New bins we compute in the following way: if (n+1)**(n+1) mod k is s then:
+        we take amount of subsets in every bin and increase amount of solution in bin s elements further.
     """
+    bins = [0] * k
+    new_bins = [0] * k
+    bins[0] = 1
+    bins[1] = 1
+    yield bins
+    for i in itertools.count(2):
+        s = pow(i, i, k)
+        # for j in range(k):
+        #     new_j = (j + s) % k
+        #     new_bins[new_j] = (bins[j] + bins[new_j])  # % MODULO
+        for j in range(k):
+            new_bins[j] = (bins[j] + bins[j - s]) % MODULO
+        bins, new_bins = new_bins, bins
+        yield bins
 
-    def next_partition():
-        """
-        Update partition to the next one with the same size.
-        :return: True if next partition exist otherwise False
-        """
-        right_side_sum = 0
-        for i in reversed(range(len(partition) - 1)):
-            # Keep sum of elements skipped from right
-            right_side_sum += partition[i + 1]
-            # From the end look for the first element smaller than next
-            if partition[i + 1] > partition[i]:
-                # Borrow one
-                partition[i+1] -= 1
-                # Find next which is smaller for increasing them
-                for j in reversed(range(i+1)):
-                    if partition[j + 1] > partition[j]:
-                        # Increase element j. Keep invariants that sum is n and numbers are monotonic
-                        partition[j] += 1
-                        # Now prepare for making minimal part on right of j
-                        # all elements on right are equals partition[j] except last one which can be grater
-                        right_j_sum = right_side_sum + (i - j) * partition[j+1]
-                        distance = len(partition) - j - 2
-                        for k in range(distance):
-                            partition[j + k + 1] = partition[j]
-                        partition[-1] = right_j_sum - distance * partition[j] - 1
-                        return True
-        # Not found any place for generating next partition with:
-        #   - the same sum
-        #   - the same length
-        #   - having elements in order: partition[0] <= partition[1] .... <= partition[len(partition)-1]
-        return False
 
-    # Build partition length starting from 1 to n
-    for m in range(n):
-        partition = [1] * m
-        partition.append(n - m)
-        yield partition
-        # Next partitions with the same size
-        while next_partition():
-            # assert all(a <= b for a, b in zip(partition, partition[1:])), partition
-            # assert sum(partition) == n, partition
-            yield partition
+def scan_by_iteration_2(k):
+    """
+    Yield solution using brute force method.
+    For n we have 2**n all subsets divided into k bins [sum modulo k]
+    Solution is bins[0] - 1 as empty set is not in scope.
+    With step n+1 we increase amount of solution by 2**n having together 2**(n+1).
+    New bins we compute in the following way: if (n+1)**(n+1) mod k is s then:
+        we take amount of subsets in every bin and increase amount of solution in bin s elements further.
+    """
+    index, rem_list_of_items = find_cycle(n_xx_n_mod_k_frame, k)
+    rem_items = list(flatten_list(rem_list_of_items))
+    bins = [0] * k
+    new_bins = [0] * k
+    bins[0] = 1
+    bins[1] = 1
+    yield bins
+    n_xx_n_mod_k_iter = itertools.chain(rem_items[:index], itertools.cycle(rem_items[index:]))
+    next(n_xx_n_mod_k_iter)
+    for s in n_xx_n_mod_k_iter:
+        for j in range(k):
+            new_bins[j] = bins[j] + bins[j - s]
+        bins, new_bins = new_bins, bins
+        yield bins
+
+
+def scan_using_symbols(k, *, bins=None, start=1, end=None):
+    """
+    Yield solution using brute force but keeps results in symbolic forms.
+    Every subset is represented as symbolic sum of initial state.
+    So for example for k=3 we have initial state (the first step):
+    [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    After 7 steps we have:
+    [[20, 20, 24], [24, 20, 20], [20, 24, 20]]
+    which means that the first subset has amount of:
+        20 * initial amount of subset one plus
+        20 * initial amount of subset two plus
+        24 * initial amount of subset three
+
+    """
+    new_bins = [[]] * k
+    for i in range(k):
+        new_bins[i] = [0] * k
+
+    if bins is None:
+        bins = [[]] * k
+        for i in range(k):
+            bins[i] = [0] * k
+            bins[i][i] = 1
+            new_bins[i] = [0] * k
+        if end and end < 1:
+            return
+        yield bins
+        start += 1
+    else:
+        bins = bins[:]
+    for i in itertools.count(start):
+        if end and end < i:
+            return
+        s = pow(i, i, k)
+        for j in range(k):
+            new_bins[j] = [(old + new) % MODULO for old, new in zip(bins[j], bins[j - s])]
+        bins, new_bins = new_bins, bins
+        yield bins
+
+
+def double_symbolic_element(elem):
+    """
+    Take symbolic representation and apply them to ourself, which result in doubling element.
+    Having symbolic representation of element n give you symbolic representation of element 2*n + 1.
+    Works for element n where n-1 is multiplication of k(exactly multiplication of cycle length which is is c*k).
+    Algorithm works by applying result value to input value.
+    """
+    k = len(elem)
+    res = [0] * k
+    for e in range(k):
+        res[e] = [sum(elem[e][j] * elem[j][i] for j in range(k)) % MODULO for i in range(k)]
+    return res
+
+
+def add_symbolic_elements(elem1, elem2):
+    """ Add two symbolic representation. """
+    k = len(elem1)
+    res = [0] * k
+    for e in range(k):
+        res[e] = [sum(elem2[e][j]*elem1[j][i] for j in range(k)) % MODULO for i in range(k)]
+    return res
+
+
+def find_symbolic_cycle(k):
+    values = []
+    doubles = []
+    symbolic_it = scan_using_symbols(k)
+    next(symbolic_it)
+    for ndx, element in enumerate(symbolic_it, start=2):
+        # if ndx>250:
+        #     break
+        # if (ndx - 1) % k:
+        #     continue
+        values.append((ndx, element[:]))
+        doubles.append(double_symbolic_element(element[:]))
+        print(values[-1], '\n', doubles[-1])
+        if element in doubles:
+            dbl_index = doubles.index(element)
+            index, value = values[dbl_index]
+            # print(index, dbl_index, ndx)   #,  value[::-1], element[::-1])
+            return index, ndx, value
+        if ndx > 64:
+            break
+
+
+def find_symbolic_solution(n, k):
+    #if k not in [16, 23, 24, 32, 40, 48]:
+    base_ndx, dbl_ndx, base_value = find_symbolic_cycle(k)
+    k_cycle = base_ndx - 1
+    n_steps = (n - 1) // k_cycle
+    manual_computing = n_steps * k_cycle + 2
+    # print(f'cycle={k_cycle}, steps={n_steps}, manual={manual_computing},Base={base_value}')
+    bins = [[]] * k
+    for i in range(k):
+        bins[i] = [0] * k
+        bins[i][i] = 1
+    while n_steps != 0:
+        # print(f'steps={n_steps}, {bins}')
+        if n_steps % 2:
+            bins = add_symbolic_elements(bins, base_value)
+        base_value = double_symbolic_element(base_value)
+        n_steps //= 2
+    # print(f'steps={n_steps}, {bins}')
+    # print(f"manual from {manual_computing} to {n}")
+    for ndx, element in enumerate(scan_using_symbols(k, bins=bins[:],
+                                                     start=manual_computing, end=n), start=manual_computing):
+        # print(f'Manual at {ndx}, {element}')
+        bins = element[:]
+    return bins
+
+
+def get_solution(n, k):
+    # test_value = get_solution_by_iteration(n, k)
+    symbolic = find_symbolic_solution(n, k)
+    # print(symbolic)
+    result = (symbolic[0][0] + symbolic[0][1] - 1) % MODULO
+    # if test_value != result:
+    #     print('Results: ', n, k, test_value, result, symbolic)
+    return result
+
+
+def find_k_4(n):
+    """Exact solution for k = 4."""
+    if n == 1:
+        return 1
+    cycle, rem = divmod(n - 1, 4)
+    adjustment = cycle * 3 - 1
+    result = pow(2, n - 2) + pow(2, adjustment + rem)
+    return result
+
+
+def find_k_8(n):
+    """Exact solution for k = 4"""
+    if n == 1:
+        return 1
+    cycle, rem = divmod(n - 1, 4)
+    adjustment = cycle * 3 - 2
+    result = (pow(2, cycle * 4 - 2) + pow(2, adjustment)) * pow(2, rem)
+    return result
 
 
 def nstr(n):
+    """Represent integer in radix with base up to 62 using digits, big letters and small letters. """
     if n < 10:
         return str(n)
     n -= 10
@@ -72,42 +214,6 @@ def nstr(n):
         return chr(ord('A') + n)
     n -= 26
     return chr(ord('a') + n)
-
-
-def dynamic_level_loop(stop, *, start=None, step=None):
-    def inc_overflow():
-        pos = 0
-        while True:
-            if index[pos] + step[pos] < stop[pos]:
-                index[pos] += step[pos]
-                return False
-            elif pos == len(index) - 1:
-                return True
-            else:
-                index[pos] = start[pos]
-                pos += 1
-
-    stop = [s for s in stop]
-
-    if start:
-        start = [s for s in start]
-    else:
-        start = [0] * len(stop)
-
-    index = [s for s in start]
-
-    if step:
-        step = [s for s in step]
-    else:
-        step = [1] * len(stop)
-
-    if inc_overflow():
-        return
-
-    while True:
-        yield index
-        if inc_overflow():
-            break
 
 
 def n_xx_n_mod_k(n, k):
@@ -123,16 +229,11 @@ def n_xx_n_mod_k_frame(step, k):
     return result
 
 
-def n_mod_k(n, k):
-    """ Compute n mod k. """
-    return (n * i) % k
-
-
 def find_cycle(get_item, k, *, start=0, step=1):
     """ Find the shortest cycle of sequence build with get_item. """
     items = []
-    for step in itertools.count(start=start, step=step):
-        item = get_item(step, k)
+    for offset in itertools.count(start=start, step=step):
+        item = get_item(offset, k)
         items.append(item)
         index = items.index(item)
         if index != len(items) - 1:
@@ -142,10 +243,10 @@ def find_cycle(get_item, k, *, start=0, step=1):
 
 
 def flatten_list(items):
+    """Flatten two level lists into one level."""
     for item in items:
         if isinstance(item, list):
-            for sub_item in item:
-                yield sub_item
+            yield from item
         else:
             yield item
 
@@ -153,125 +254,48 @@ def flatten_list(items):
 def n_xx_n_mod_k_cycle(k):
     """ Find the shortest cycle of sequence: 1 ** 1 mod k, 2 ** 2 mod k, ... """
     index, items = find_cycle(n_xx_n_mod_k_frame, k)
-
-    elements = set(flatten_list(items))
-
-    if DEBUG and False:
-        print(f'n**n mod k: K={k}, elements={len(elements)}, cycle={len(items) - index}, start={index}')
-        for item in items:
-            print(item)
-        print(elements)
-    return index, items
-
-
-def n_x_i_mod_k_cycle(n, k):
-    """ Find the shortest cycle of sequence: 1 * n mod k, 2 * n mod k, ... """
-    index, items = find_cycle(lambda i, j: i % j, k, start=n, step=n)
-    assert index == 0
-    assert items[-1] == 0
-    items.pop()
-    items.sort()
-    if DEBUG and False:
-        print(f'a*n mod k: K={k}, elements={len(items)}, cycle={len(items) - index}, start={index}')
-        print(items)
-    return index, items
-
-
-def counts(n, k):
-    index, items = n_xx_n_mod_k_cycle(k)
-    cycle_size = (len(items) - index) * k
-    offset = index * k
-    elements = list(flatten_list(items))
-    if len(elements) >= n:
-        counter = Counter(elements[:n])
-    else:
-        cycles, reminder = divmod(n - offset, cycle_size)
-        counter = Counter(elements[offset:])
-        c_offset = Counter(elements[:offset])
-        c_reminder = Counter(elements[offset:offset + reminder])
-        for key in counter:
-            counter[key] = cycles * counter[key] + c_offset[key] + c_reminder[key]
-    k_cycle = {}
-    for key in sorted(counter.keys()):
-        if key:
-            index, items = n_x_i_mod_k_cycle(key, k)
-            k_cycle[key] = len(items)
-    return counter, k_cycle
-
-
-def find_sum(n, k):
-    counter, cycle = counts(n, k)
+    cycle_len = (len(items) - index) * k
     if DEBUG:
-        print(f'Counter: {counter}')
-        print(f'Cycle: {cycle}')
-    cnt_counter = []
-    cnt_values = []
-    cycle[0] = 1
-    for key in sorted(counter.keys()):
-        if key or True:  # and cycle[key]:
-            cnt_values.append(key)
-            cnt_counter.append(min(counter[key], cycle[key]) + 1)
-            # cnt_counter.append(cycle[key]+1)
-    result = []
-    if not cnt_counter:
-        return None
-    print(cnt_values)
-    for v in dynamic_level_loop(cnt_counter):
-        if math.gcd(*v) > 1:
-            pass
-            # continue
-        dot = sum(map(operator.mul, v, cnt_values))
-        if dot % k == 0:
-            r = ''.join([nstr(p) * vv for vv, p in zip(v, cnt_values) if vv != 0])
-            result.append(r)
-    result.sort(key=lambda x: (len(x), x))
-    len_cnt = Counter()
-    for r in result:
-        len_cnt[len(r)] += 1
-    for key in sorted(len_cnt.keys()):
-        print(key, len_cnt[key])
-    for r in result:
-        pass
-        print(r)
+        print(
+            f'K={k:2}, start={index:1}, cycle={len(items) - index:2}, start_len={index * k:2}, cycle_len={cycle_len:4}')
+    return index, items
 
 
-L50 = sorted([n ** n % 50 for n in range(1, 11)])
-L12 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-
-
-def compute_l50():
-    print(L50)
-    cnt = 0
-    for v in dynamic_level_loop([2, 2, 2, 2, 2, 2, 2, 2, 2, 2]):
-        dot = sum(map(operator.mul, v, L50))
-        if dot % 50 == 0:
-            r = ''.join([nstr(i) for i in range(10) if v[i] != 0])
-            print(cnt, r)
-            cnt += 1
-
-
-def compute_l12():
-    print(L12)
-    res = []
-    for v in dynamic_level_loop([13, 7, 5, 4, 3, 3, 2, 2, 2, 2, 2, 2]):
-        dot = sum(map(operator.mul, v, L12))
-        if dot == 12:
-            r = list(flatten_list([[L12[i]]*v[i] for i in range(len(L12)) if v[i] != 0]))
-            res.append(r)
-
-    res.sort(key=lambda x: (len(x), x))
-    for r in res:
-        print(r)
-    print()
-
-
-if __name__ == '__main__':
-    DEBUG = True
-
-    find_sum(10, 50)
+def view_main():
+    x = 10**400
+    for i in range(x, x+1):
+        get_solution(i, 16)
     exit()
-    for k in range(3, 20):
-        for i in range(k * k + k, k * k + k + 1):
-            print(f'I={i}, K={k}')
-            find_sum(i, k)
-            # counts(100, k)
+    for k in range(49, 51):
+        tab = []
+        log_k = int(math.log(k, 2))
+        if k in {4, 8}:
+            continue
+        index, items = n_xx_n_mod_k_cycle(k)
+        offset = index * k
+        cycle_size = (len(items) - index) * k
+        stop = 50  # * cycle_size + 2
+        # it = find_using_symbols(k)
+        find_symbolic_solution(100, k)
+        continue
+        for n, result in enumerate(scan_by_iteration(k), start=1):
+            elem = next(it)
+            next_d = double_symbolic_element(elem)
+            print('Apply: ', n, elem, '->', next_d)
+            if stop < n:
+                break
+            if (n - offset) % cycle_size == 0:
+                tab.append(result[:])
+    exit()
+
+
+def euler_main():
+    print(get_solution_by_iteration(250250, 250))
+
+
+def hacker_main():
+    n, k = [int(s) for s in input().split()]
+    print(get_solution_by_iteration(n, k))
+
+
+view_main()
