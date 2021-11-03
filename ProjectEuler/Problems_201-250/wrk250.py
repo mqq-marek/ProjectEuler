@@ -114,11 +114,8 @@ def scan_using_symbols(k, *, bins=None, start=1):
 
     for i in itertools.count(start + 1):
         s = pow(i, i, k)
-        new_bins = [[(old + new) % MODULO for old, new in zip(bins[j], bins[j - s])] for j in range(k)]
-        # for j in range(k):
-        #     new_bins[j] = [(old + new) % MODULO for old, new in zip(bins[j], bins[j - s])]
-            # for p in range(k):
-            #     new_bins[j][p] = (bins[j][p] + bins[j-s][p]) % MODULO
+        new_bins = [[(old + new) % MODULO for old, new in zip(bins[j], bins[j - s])]
+            for j in range(k)]
         bins, new_bins = new_bins, bins
         yield bins
 
@@ -140,10 +137,11 @@ def double_symbol(elem):
 def add_symbol(elem1, elem2):
     """ Add two symbolic representation."""
     k = len(elem1)
-    # res = [[]] * k
-    # for e in range(k):
-    #     res[e] = [sum(elem2[e][j] * elem1[j][i] for j in range(k)) % MODULO for i in range(k)]
-    res = [[sum(elem2[e][j] * elem1[j][i] for j in range(k)) % MODULO for i in range(k)] for e in range(k)]
+    res = [[]] * k
+    for e in range(k):
+        res[e] = [sum(elem2[e][j] * elem1[j][i] for j in range(k)) % MODULO for i in range(k)]
+    #res = [[sum(elem2[e][j] * elem1[j][i] for j in range(k)) % MODULO for i in range(k)] for e in range(k)]
+
     return res
 
 
@@ -174,7 +172,7 @@ def find_symbol_cycle(k):
 
 
 def find_symbolic_solution_old(n, k):
-    dbg = False
+    dbg = True
 
     prefix, k_cycle = CYCLES[k-3]
     dbg_print(dbg, f'Find n={n}, k={k}, prefix={prefix}, cycle={k_cycle}')
@@ -221,7 +219,7 @@ def find_symbolic_solution(n, k):
         - Compute cycle part [amount of cycles = (n - prefix) // cycle_size
         - Compute remainder part = n - offset - (n - prefix) // cycle_size
     """
-    dbg = False
+    dbg = True
 
     #
     # prefix, base_ndx, dbl_ndx, base_value = find_symbol_cycle(k)
@@ -273,10 +271,10 @@ def get_solution(n, k):
     return result
 
 
-def test_solution(n, k):
+def verify_solution(n, k):
     test_value = get_solution_by_iteration(n, k)
     symbolic = find_symbolic_solution(n, k)
-    # print(symbolic)
+    print(symbolic)
     result = (symbolic[0][0] + symbolic[0][1] - 1) % MODULO
     if test_value != result:
         print('Results: ', n, k, test_value, result, symbolic)
@@ -355,7 +353,7 @@ def view_main():
     k = 8
     for k in range(3, 51):
         for i in range(1, 100):
-            test_solution(i, k)
+            verify_solution(i, k)
     exit()
     for k in range(25, 26):
         tab = []
@@ -407,28 +405,17 @@ def euler_main():
 
 def hacker_main():
     n, k = [int(s) for s in input().split()]
+    assert k != 47
     print(get_solution(n, k))
 
 
 # euler_main()
-# hacker_main()
+#hacker_main()
 # view_main()
 # cycle_main()
 # symbolic_main()
-k = 7
-nb = [0] * k
-nb[0] = 1
-for ndx, elem in enumerate(scan_using_symbols(k), start=1):
-    print(f'F{ndx:3}, {k:2}, {pow(ndx, ndx, k):2}, {elem[0]}')
-    if nb != elem[0]:
-        print('E:', nb)
-    ns = pow(ndx+1, ndx+1, k)
-    e = 0
-    nb = [0] * k
-    for i in range(k):
-        nb[i] = elem[0][i] + elem[0][(ns+i) % k]
-
-
-    if ndx == 10:
-        break
-
+verify_solution(7, 3)
+exit()
+for k in range(3, 50):
+    for n in range(1, 20):
+        verify_solution(n, k)
