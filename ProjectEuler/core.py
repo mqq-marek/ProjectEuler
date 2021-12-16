@@ -2,11 +2,14 @@
 Gems or core functionalities used in different problems.
 """
 import itertools
+import random
+from bisect import bisect_left
 from collections import Counter
 from functools import reduce
 from itertools import starmap
 import math
-from typing import Iterator, Sequence, TypeVar, Callable, Iterable, Tuple
+from operator import mul
+from typing import Iterator, Sequence, TypeVar, Callable, Iterable, Tuple, List
 
 GenT = TypeVar('GenT')
 
@@ -54,6 +57,16 @@ def fibonacci() -> Iterator[int]:
         f_current, f_next = f_next, f_current + f_next
 
 
+def multiples_of(numbers: List[int]):
+    """
+    Calculate the number of numbers multiples in the range being their product.
+    Eg for 3, 5 compute amount of 3 & 5 multiples in frame size 3 * 5
+    """
+    frame_size = reduce(mul, numbers)
+    multiples = sum(any(i % num == 0 for num in numbers) for i in range(frame_size))
+    return multiples, frame_size, multiples / frame_size
+
+
 def divisors(num: int, *, start: int = 2, ordered: bool = False, step: int = 1) -> Iterator[int]:
     """
     Get all number divisors starting from start.
@@ -84,7 +97,7 @@ def divisors(num: int, *, start: int = 2, ordered: bool = False, step: int = 1) 
 
         # Step 2:
         # Process divisibility in up to sqrt_num[+1]
-        # - from 2 (1 already processed) or from start if greater then 2
+        # - from 2 (1 already processed) or from start if greater than 2
         # - to sqrt_num if sqrt_num is exact square of num or once more otherwise
         for next_num in range(max(2, start), sqrt_num + no_int_sqrt, step):
             if num % next_num == 0:
@@ -180,10 +193,10 @@ def least_common_multiple(seq: Iterable[int]) -> int:
     return reduce(lcm, seq, 1)
 
 
-IntPair = tuple[int, int]
+IntPair = Tuple[int, int]
 
 
-def prime_factors_with_powers(num: int) -> list[IntPair]:
+def prime_factors_with_powers(num: int) -> List[IntPair]:
     """Return prime divisors of num as tuples (prime, counter)."""
     primes = Counter(prime_divisors(num))
     result = []
@@ -195,7 +208,7 @@ def prime_factors_with_powers(num: int) -> list[IntPair]:
     return result
 
 
-def normalized_prime_factors_with_powers(num: int) -> tuple[int, list[IntPair]]:
+def normalized_prime_factors_with_powers(num: int) -> Tuple[int, List[IntPair]]:
     """Return prime divisors of num as tuples (prime, power) with common power for all.
     normalized_prime_divisors_with_powers(6) = [1, [(2,1), (3, 1)]
     normalized_prime_divisors_with_powers(12) = [1, [(2,2), (3, 1)]
@@ -209,32 +222,97 @@ def normalized_prime_factors_with_powers(num: int) -> tuple[int, list[IntPair]]:
     return gcd, prime_tuples
 
 
-def is_prime(num: int) -> bool:
+def is_prime(num: int, *, primes: List[int] = None) -> bool:
     """
     Verify if num is prime
     :param num:
+    :param primes: initial sorted primes table if exist (e.g. from Eratosthenes)
     :return: True if prime, False otherwise
     """
-    assert num >= 1
-
-    if num == 1:
+    if num < 2:
+        return False
+    if num < 13:
+        #       2,    3,    4,     5,    6,     7,    8,     9,     10,    11,   12
+        return [True, True, False, True, False, True, False, False, False, True, False][num-2]
+    if num % 2 == 0 or num % 3 == 0:
         return False
 
-    if num == 2:
-        return True
+    sqrt_num = int(math.sqrt(num))
+    start = 13
 
-    if num % 2 == 0:
-        return False
+    if primes:
+        if num <= primes[-1]:
+            return primes[bisect_left(primes, num)] == num
+        for prime in primes:
+            if prime > sqrt_num:
+                break
+            if num % prime == 0:
+                return False
+        if primes[-1] % 6 == 1:
+            start = primes[-1]
+        else:
+            start = primes[-1] + 2
 
-    for _ in divisors(num, start=3, step=2):
-        # try to get first divisor
-        return False
-
-    # if no divisors, than prime
+    for n in range(start, 6, sqrt_num + 1):
+        if num % n == 0 or num % (n + 4) == 0:
+            return False
     return True
 
 
-def partitions(n) -> Iterator[list[int]]:
+def is_prime_Miller_Rabin(num: int, *, primes: List[int] = None, tests: int = 5) -> bool:
+    """
+    Verify if num is prime
+    :param num:
+    :param primes: initial sorted primes table if exist (e.g. from Eratosthenes) - recommend up to the first 20 primes
+    :param tests: number of additional rounds for big number testing
+    :return: True if prime, False otherwise
+    """
+    if num < 2:
+        return False
+    if num < 13:
+        #       2,    3,    4,     5,    6,     7,    8,     9,     10,    11,   12
+        return [True, True, False, True, False, True, False, False, False, True, False][num-2]
+
+    sqrt_num = int(math.sqrt(num))
+    for prime in primes:
+        if prime > sqrt_num:
+            return True
+        if num % prime == 0:
+            return False
+
+    # Factor n-1 as d * 2 ** s
+    s, d = 0, num - 1
+    while d % 2 == 0:
+        d //= 2
+        s += 1
+
+    # Make witnesses
+    if num < 1373653:
+        test_set = [2, 3]
+    elif num < 25326001:
+        test_set = [2, 3, 5]
+    elif num < 118670087467:
+        if num == 3215031751:
+            return False
+        test_set = [2, 3, 5, 7]
+    elif num < 2152302898747:
+        test_set = [2, 3, 5, 7, 11]
+    else:
+        test_set = [2, 3, 5, 7, 11, 13] + [random.randrange(17, num - 1) for _ in range(tests)]
+    for a in test_set:
+        x = pow(a, d, num)
+        if x in [1, num - 1]:
+            continue
+        for _ in range(s):
+            x = x * x % num
+            if x == num - 1:
+                break
+        else:
+            return False
+    return True
+
+
+def partitions(n) -> Iterator[List[int]]:
     """
     Yields number n partitions.
     partitions(5) yields:
@@ -297,7 +375,7 @@ def partitions(n) -> Iterator[list[int]]:
             yield partition[:]
 
 
-def eratosthenes_sieve() -> Iterator[int]:
+def eratosthenes_sieve_it() -> Iterator[int]:
     # http://mypy-lang.org/examples.html example
     # An iterator of all prime numbers between 2 and
     # +infinity
@@ -339,7 +417,7 @@ def count_divisible_in_range(divisors: Iterable[int], stop: int):
     return total
 
 
-def gen_primes(n: int) -> list[int]:
+def gen_primes(n: int) -> List[int]:
     def has_prime_divisors(k: int) -> bool:
         for p in primes:
             if k % p == 0:
@@ -353,3 +431,32 @@ def gen_primes(n: int) -> list[int]:
         if not has_prime_divisors(i):
             primes.append(i)
     return primes
+
+
+def eratosthenes_sieve(n):
+    """Return primes <= n."""
+
+    def add_prime(k):
+        """Add founded prime."""
+        primes.append(k)
+        pos = k + k
+        while pos <= n:
+            numbers[pos] = 1
+            pos += k
+
+    numbers = [0] * (n + 1)
+    primes = [2]
+    for i in range(3, n + 1, 2):
+        if not numbers[i]:
+            add_prime(i)
+    return primes
+
+
+def is_in_sorted_list(primes, n):
+    """Check if number is prime."""
+    pos = bisect_left(primes, n)
+    if pos < len(primes):  # n is in primes
+        if primes[pos] == n:
+            return True
+    return False
+
