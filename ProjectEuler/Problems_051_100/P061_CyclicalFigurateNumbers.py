@@ -73,8 +73,9 @@ def search(elems, nums):
     else:
         if elems[0] == elems[-1]:
             nums_sum = sum_elements(elems)
-            if nums_sum
+            if nums_sum:
                 results.add(nums_sum)
+
 
 def lookup(nums):
     """Initialize lookup for given nums list."""
