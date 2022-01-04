@@ -21,6 +21,7 @@ TRIANGLE = """75
 04 62 98 27 23 09 70 98 73 93 38 53 60 04 23
 """
 
+
 def extend(best):
     """ Extend current best sum for next triangle row offering best value from previous row.
     E.g. for triangle: 1 / 2, 3 / 4, 1, 5 best values second row are: 3, 4. Emit 3, 4, 4 for
@@ -66,5 +67,17 @@ def hacker_main():
         print(best)
 
 
+def euler_main():
+    with open('P067_Triangle.txt') as f:
+        arr = []
+        for line in f.readlines():
+            row = list(map(int, line.split()))
+            arr.append(row)
+        best = best_value(arr)
+        print(best)
+
+
 if __name__ == "__main__":
-    dev_main(TRIANGLE)
+    # euler_main()
+    # dev_main(TRIANGLE)
+    hacker_main()
