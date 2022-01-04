@@ -52,6 +52,7 @@ def n_th_num_sum(n):
         pass
     return digits_sum(num)
 
+
 n = 100
 n = int(input())
 print(n_th_num_sum(n))
