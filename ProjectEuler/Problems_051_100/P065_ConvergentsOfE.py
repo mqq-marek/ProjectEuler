@@ -29,21 +29,21 @@ def fractions(seq):
     [Easy to find - just try to compute few initial values....]
     Numerator and denominator for W(0) and W(1) computed by definition.
     """
-    a1 = next(seq)
-    a2 = 1
-    b2 = next(seq)
-    b1 = a1 * b2 + 1
-    yield a1, a2
-    yield b1, b2
-    for n in seq:
-        a1, b1 = b1, a1 + n * b1
-        a2, b2 = b2, a2 + n * b2
-        yield b1, b2
+    den_0 = 1
+    num_0 = next(seq)
+    den_1 = next(seq)
+    num_1 = num_0 * den_1 + 1
+    yield num_0, den_0
+    yield num_1, den_1
+    for coefficient in seq:
+        num_0, num_1 = num_1, num_0 + coefficient * num_1
+        den_0, den_1 = den_1, den_0 + coefficient * den_1
+        yield num_1, den_1
 
 
-def digits_sum(n):
+def digits_sum(num):
     """Digits sum for number."""
-    return sum(int(d) for d in str(n))
+    return sum(int(d) for d in str(num))
 
 
 def n_th_num_sum(n):
