@@ -142,7 +142,7 @@ def totient_solver(n):
         return totient_loop_naive(n)
     return totient_guesser(n)
 
-
+print(primes)
 #n = 10**7
 n = int(input())
 print(totient_solver(n))

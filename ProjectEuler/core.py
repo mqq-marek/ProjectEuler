@@ -460,3 +460,15 @@ def is_in_sorted_list(primes, n):
             return True
     return False
 
+
+def eegcd(a, b):
+    """Compute Extend Euclid GCD Algorithm.
+    Return g, x, y such that:
+    g = gcd/hcf(a, b)
+    a * b // g = LCM(a, b)
+    g = a * x + b * y
+    """
+    if a == 0:
+        return b, 0, 1
+    g, y, x = eegcd(b % a, a)
+    return g, x - (b // a) * y, y
