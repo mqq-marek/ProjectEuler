@@ -472,3 +472,16 @@ def eegcd(a, b):
         return b, 0, 1
     g, y, x = eegcd(b % a, a)
     return g, x - (b // a) * y, y
+"""
+    Non recursive: for test
+    s = 0; old_s = 1
+    t = 1; old_t = 0
+    r = b; old_r = a
+
+    while r != 0:
+        quotient = old_r//r 
+        old_r, r = r, old_r - quotient*r
+        old_s, s = s, old_s - quotient*s
+        old_t, t = t, old_t - quotient*t
+    return [old_r, old_s, old_t]
+"""
