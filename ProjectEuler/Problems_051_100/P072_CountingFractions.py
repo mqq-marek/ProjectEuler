@@ -33,10 +33,6 @@ Find the value of n <= 1,000,000 for which n/phi(n) is a maximum.
 
 """
 
-import math
-from collections import Counter
-from typing import Iterator
-
 
 def rationals_sieve(n):
     """Return number of rationals in range m/n where m < n."""

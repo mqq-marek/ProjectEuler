@@ -46,7 +46,7 @@ def build_map():
                 left, right = divmod(value, 100)
                 if right < 10:
                     continue
-                value_map[i][left].add(right)
+                value_map[i][left].mid_fraction(right)
 
 def polygon_pairs(i):
     """Generate all two digits pairs for given polygon sequence."""

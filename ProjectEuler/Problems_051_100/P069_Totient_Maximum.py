@@ -21,7 +21,6 @@ Find the value of n <= 1,000,000 for which n/phi(n) is a maximum.
 from fractions import Fraction
 import math
 from collections import Counter
-from functools import reduce
 from typing import Iterator, Iterable, Tuple, List
 
 
@@ -91,7 +90,7 @@ def divisors(num: int, *, start: int = 2, ordered: bool = False, step: int = 1) 
         # Divisor are not generated in sorted order. E.g. for 12 it is: 1, 12, 2, 6, 3, 4.
         # Odd elements are increasing, even elements are decreasing
         # Make stack for half of divisors if ordered list of divisors is requested
-        divisors_stack: list[int] = []
+        divisors_stack: List[int] = []
         iterator = iter(iterable)
 
         try:
@@ -158,19 +157,6 @@ def prime_divisors(num: int) -> Iterator[int]:
         num //= scan_start
 
 
-def least_common_multiple(seq: Iterable[int]) -> int:
-    """
-    Least common multiple of positive integers.
-    :param seq: sequence of numbers
-    :return: LCM
-    """
-
-    def lcm(num1: int, num2: int) -> int:
-        return num1 * num2 // math.gcd(num1, num2)
-
-    return reduce(lcm, seq, 1)
-
-
 IntPair = Tuple[int, int]
 
 
@@ -186,7 +172,7 @@ def prime_factors_with_powers(num: int) -> List[IntPair]:
     return result
 
 
-def totient(n):
+def totient(n: int) -> int:
     """ Compute totient.
     totient(prime**k) = p**k - p**(k-1)
     totient(n*m) = totient(n) * totient(m) if n,m coprime.
@@ -195,12 +181,12 @@ def totient(n):
     res = 1
     # if n > 500000 and (n % 2 or n % 3 or n % 5 or n % 7 or n % 11 or n % 13 or n % 17):
     #     return n, 1
-    for factor in result:
-        if factor[1] == 1:
-            res *= factor[0] - 1
+    for prime, power in result:
+        if power == 1:
+            res *= prime - 1
         else:
-            res *= pow(factor[0], factor[1] - 1) * (factor[0] - 1)
-    return res, result
+            res *= pow(prime, power - 1) * (prime - 1)
+    return res
 
 
 def best_totient(n):
@@ -208,17 +194,19 @@ def best_totient(n):
     index = 0
     for i in range(2, n + 1):
         t = totient(i)
-        if t[0] == i:
+        if t == i - 1:
+            # Got prime, ratio low
             continue
-        new_ratio = Fraction(i, t[0])
+        new_ratio = Fraction(i, t)
         if new_ratio > ratio:
             ratio = new_ratio
             index = i
-            print(i, ratio, t[1])
+            # print(i, ratio)
     return ratio, index
 
 
 def best_totient_fast(n, primes):
+    """Best index i multiply of prime numbers as it has the biggest number of divisors."""
     best_num = 1
     for p in primes:
         next = p * best_num
