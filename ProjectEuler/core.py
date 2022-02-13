@@ -180,6 +180,32 @@ def prime_divisors(num: int) -> Iterator[int]:
         num //= scan_start
 
 
+def prime_divisors_using_prime(num: int, primes: list[int]) -> Iterator[int]:
+    """
+    Get all num prime divisors.
+    :param num: number for which we yields prime divisors
+    :yields: num prime divisors
+    """
+    assert num > 0
+
+    start_num = num
+    sqrt_num = int(math.sqrt(num)) + 1
+    counter = 0
+
+    for p in primes:
+        while num % p == 0:
+            yield p
+            counter += 1
+            num //= p
+        if num == 1 or counter > 3:
+            return
+        if p > sqrt_num:
+            yield num
+            return
+
+    raise Exception(f"Primes too short for {start_num} -> {num}, Primes{len(primes)}/{primes[-1]}")
+
+
 def least_common_multiple(seq: Iterable[int]) -> int:
     """
     Least common multiple of positive integers.
@@ -450,6 +476,37 @@ def eratosthenes_sieve(n):
         if not numbers[i]:
             add_prime(i)
     return primes
+
+
+def phi_sieve(n):
+    """Return primes <= n and phi(n).
+    phi(n) is Euler totient function, which return amount of integers less than n which are co-prime to n.
+    """
+
+    def power_prime_phi(num, n):
+        result = n - 1
+        num = num // n
+        while num % n == 0:
+            result *= n
+            num = num // n
+        return result
+
+    def add_prime(k):
+        """Add founded prime."""
+        primes.append(k)
+        pos = k
+        while pos <= n:
+            numbers[pos] *= power_prime_phi(pos, k)
+            pos += k
+
+    numbers = [1] * (n + 1)
+    numbers[0] = 0
+    numbers[1] = 0
+    primes = []
+    for i in range(2, n + 1):
+        if numbers[i] == 1:
+            add_prime(i)
+    return primes, numbers
 
 
 def is_in_sorted_list(primes, n):

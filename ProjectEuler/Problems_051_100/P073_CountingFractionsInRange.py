@@ -19,69 +19,6 @@ from fractions import Fraction
 from typing import List, NamedTuple, Iterator
 
 
-def eratosthenes_sieve(n):
-    """Return primes <= n."""
-
-    def add_prime(k):
-        """Add founded prime."""
-        p = k + k + 3
-        primes.append(p)
-        pos = k + p
-        while pos <= n:
-            numbers[pos] = 1
-            pos += p
-
-    numbers = [0] * (n + 1)
-    primes = [2]
-    for i in range(n):
-        if not numbers[i]:
-            add_prime(i)
-    return primes
-
-
-primes = eratosthenes_sieve(10 ** 4)
-
-
-def prime_divisors(num: int) -> Iterator[int]:
-    """
-    Get all num prime divisors.
-    :param num: number for which we yields prime divisors
-    :yields: num prime divisors
-    """
-    assert num > 0
-
-    start_num = num
-    sqrt_num = int(math.sqrt(num)) + 1
-    counter = 0
-
-    for p in primes:
-        while num % p == 0:
-            yield p
-            counter += 1
-            num //= p
-        if num == 1 or counter > 3:
-            return
-        if p > sqrt_num:
-            yield num
-            return
-
-    raise Exception(f"Primes too short for {start_num} -> {num}, Primes{len(primes)}/{primes[-1]}")
-
-
-def totient(n):
-    """ Compute totient.
-    totient(prime**k) = p**k - p**(k-1)
-    totient(n*m) = totient(n) * totient(m) if n,m coprime.
-    """
-    result = list(prime_divisors(n))
-    prime_power = Counter(result)
-    res = 1
-    for p, cnt in prime_power.items():
-        if cnt == 1:
-            res *= (p - 1)
-        else:
-            res = pow(p, cnt - 1) * (p - 1)
-    return res, result
 
 
 def count_rationals_simple(a, d):
@@ -90,7 +27,7 @@ def count_rationals_simple(a, d):
     """
     fractions = 0
     frs = set()
-    for y in range(a + 2, d + 1):
+    for y in range(2 * a + 1, d + 1):
         x_min, rem = divmod(y, a + 1)
         x_min += 1
         x_max, rem = divmod(y, a)
@@ -108,9 +45,39 @@ def count_rationals_simple(a, d):
     return fractions
 
 
+def count_rationals(a, max_d):
+    """
+    Count rationals between 1/(a+1) and 1/a where max enumerator is d.
+    Rational sequence properties:
+    For given d if a/b and c/d as two consecutive rationals, then:
+    1) b * c = a * d + 1
+    2) Next rational between them is (a + c) / (b + d)
+    So when a/b and c/d are two consecutive rational then next will be(a&b co-prime, c&d co-prime):
+    (k*c - a) / (k*d - b) where k is max number such that k * d - b <= max_d
+    """
+    if max_d <= 2 * a:
+        return 0
+    fractions = 0
+    rationals = []
+    fa = 1
+    fb = a + 1
+    k = (max_d + 1) // (a + 1)
+    fc = k
+    fd = k * (a + 1) - 1
+    while fc != 1 and fd != a:
+        rationals.append((fc, fd))
+        fractions += 1
+        k = (max_d + fb) // fd
+        fe = k * fc - fa
+        ff = k * fd - fb
+        this_gcd = math.gcd(fe, ff)
+        fe, ff = fe // this_gcd, ff // this_gcd
+        fa, fb, fc, fd = fc, fd, fe, ff
+    # print(rationals)
+    return fractions
+
+
 """Classes for representing fractions as: j / k * a + l for analysis."""
-
-
 class Var(NamedTuple):
     """Represent number as x1 * a + x0."""
     x1: int
@@ -179,61 +146,11 @@ def count_rationals_semi_recursive(a, d):
     return fractions
 
 
-def count_rationals_by_expression(a, d):
-    """
-    Count fractions between 1/(a+1) and 1/a where max enumerator is d.
-    Generate fractions with the following denominators:
-    2a+1
-    3a+2, 3a+1
-    4a+3, 4a+1
-    5a+4, ..., 5a+1
-    6a+5, 6a+1
-    7a+6, 7a+5,...,7a+2,7a+1
 
-    k*a + i and k, i coprime, so we have totient(k) elements here
+a, d = map(int, input().split())
 
-    """
-    k = 2
-    total = 0
-    while (k + 1) * a - 1 <= d:
-        total += totient(k)[0]
-        k += 1
-    if k * a + 1 >= d:
-        total += 1
+# for a in range(2, 10):
+#     for d in range(2 * a + 1, 5 * a):
+#         print(a, d, count_rationals_simple(a, d), count_rationals(a, d))
 
-    for i in range(2, d - k * a + 1):
-        if k % i:
-            total += 1
-    # print(limit, last, d - last + i)
-
-    # frs = set()
-    # ax2 = a + a
-    # ap1x2 = 2 * (a + 1)
-    # even_left = (d + 1) // ap1x2
-    # for i in range(even_left):
-    #     frs.add(Fraction())
-    # even_right = (d - 1) // ax2
-    # odd = (d - a - 1) // ax2
-    # previous_odd = odd * (odd - 1)
-    # current_odd = min(2 * odd, d - a * (2 * odd + 1))
-    # total = max(0, even_left + even_right + previous_odd + current_odd - 1)
-    # print(even_right, even_left, previous_odd, current_odd, odd)
-    return total
-
-
-# frac = count_rationals_semi_recursive(2, 200)
-
-# a, d = map(int, input().split())
-a, d = 2, 1000
-# print(count_rationals_semi_recursive(a, 10000))
-# print(count_rationals_by_expression(a, 10000))
-for i in range(2, 20):
-    print("r:", i, count_rationals_simple(2, i), count_rationals_by_expression(2, i))
-# assert count_rationals_semi_recursive(2, 8) == 3
-# assert count_rationals_semi_recursive(2, 10) == 4
-# assert count_rationals_semi_recursive(2, 100) == 505
-# assert count_rationals_semi_recursive(2, 1000) == 50695
-# assert count_rationals_semi_recursive(2, 10000) == 5066251
-# print(count_rationals_simple(a, d))
-# print(count_rationals_semi_recursive(a, 10))
-#
+print(count_rationals(a, d))

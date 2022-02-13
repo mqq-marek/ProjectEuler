@@ -37,7 +37,6 @@ def eratosthenes_sieve(n):
             pos += p
 
     numbers = [0] * (n + 1)
-    primes = [2]
     for i in range(n):
         if not numbers[i]:
             add_prime(i)
